@@ -29,6 +29,7 @@ def parse_homework_status(homework):
     except KeyError as er:
         message = f'Проблемы с получением информации из json(). {er}'
         logging.error(er, exc_info=True)
+        bot_client = bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
         bot_client.send_message(CHAT_ID, message)
     status = homework['status']
     if status == 'rejected':
