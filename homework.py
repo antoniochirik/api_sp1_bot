@@ -22,6 +22,8 @@ URL_PRAKTIKUM = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 
 
 def parse_homework_status(homework):
+    # Инициализирую бота внутри функции, т.к. pytest
+    # не дает в функцию передать больше одного параметра.
     try:
         homework_name = homework.get('homework_name')
     except KeyError as er:
@@ -32,7 +34,8 @@ def parse_homework_status(homework):
     if status == 'rejected':
         verdict = 'К сожалению в работе нашлись ошибки.'
     else:  # status == 'appruved':
-        verdict = 'Ревьюеру всё понравилось, можно приступать к следующему уроку.'
+        verdict = 'Ревьюеру всё понравилось, '\
+                  'можно приступать к следующему уроку.'
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
