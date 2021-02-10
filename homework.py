@@ -51,7 +51,7 @@ def parse_homework_status(homework):
             status=status
         )
         raise Exception(message)
-    if status in('rejected', 'approved'):
+    if status in ('rejected', 'approved'):
         return CHECK_STR.format(
             homework_name=homework_name,
             verdict=verdict
