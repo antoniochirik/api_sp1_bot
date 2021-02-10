@@ -20,13 +20,14 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 URL_PRAKTIKUM = 'https://praktikum.yandex.ru/api/user_api/{method}/'
 CHECK_STR = 'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+# REVIEWING_STATUS = 'Работа взята в проверку.'
+UNKNOWN_STATUS = ('У работы {homework_name} неизвестный '
+                  'статус: {status}')
 HOMEWORK_STATUSES = {
-    'rejected': 'К сожалению в работе нашлись ошибки.',
+    'reviewing': 'Работа взята в проверку.',
     'approved': ('Ревьюеру всё понравилось, '
                  'можно приступать к следующему уроку.'),
-    'reviewing': 'Работа взята в проверку.',
-    'unknown': ('У работы {homework_name} неизвестный '
-                'статус: {status}')
+    'rejected': 'К сожалению в работе нашлись ошибки.'
 }
 REQUEST_EXEPTION = 'Проблемы с ответом от сервера. {ex}'
 DATE_ERROR = 'Ошибка в указании даты'
@@ -36,28 +37,27 @@ ERROR_MESSAGE = 'Бот столкнулся с ошибкой: {e}'
 
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
-    if homework_name is None:
-        message = JSON_ERROR.format
-        raise Exception(message)
     status = homework['status']
-    if status == 'reviewing':
-        return HOMEWORK_STATUSES['reviewing']
+    if not homework_name or not status:
+        message = JSON_ERROR
+        raise Exception(message)
     verdict = None
-    if status == 'rejected':
-        verdict = HOMEWORK_STATUSES['rejected']
-    elif status == 'approved':
-        verdict = HOMEWORK_STATUSES['approved']
+    if status in HOMEWORK_STATUSES:
+        verdict = HOMEWORK_STATUSES[status]
     else:
         logging.error('Ошибка в определении статуса работы')
-        message = HOMEWORK_STATUSES['unknown'].format(
+        message = UNKNOWN_STATUS.format(
             homework_name=homework_name,
             status=status
         )
         raise Exception(message)
-    return CHECK_STR.format(
-        homework_name=homework_name,
-        verdict=verdict
-    )
+    if status in('rejected', 'approved'):
+        return CHECK_STR.format(
+            homework_name=homework_name,
+            verdict=verdict
+        )
+    else:
+        return verdict
 
 
 def get_homework_statuses(current_timestamp):
