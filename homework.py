@@ -30,14 +30,14 @@ HOMEWORK_STATUSES = {
 }
 REQUEST_EXEPTION = 'Проблемы с ответом от сервера. {ex}'
 DATE_ERROR = 'Ошибка в указании даты'
-JSON_ERROR = 'Проблемы с получением информации из json(). {er}'
+JSON_ERROR = 'Проблемы с получением информации из json().'
 ERROR_MESSAGE = 'Бот столкнулся с ошибкой: {e}'
 
 
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
-    if homework_name == None:
-        message = JSON_ERROR.format(er=er)
+    if homework_name is None:
+        message = JSON_ERROR.format
         raise Exception(message)
     status = homework['status']
     if status == 'reviewing':
@@ -55,7 +55,7 @@ def parse_homework_status(homework):
         )
         raise Exception(message)
     return CHECK_STR.format(
-        homework_name=homework_name, 
+        homework_name=homework_name,
         verdict=verdict
     )
 
@@ -95,8 +95,7 @@ def send_message(message, bot_client):
 def main():
     bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
     logging.debug('Бот активирован')
-    #current_timestamp = int(time.time())
-    current_timestamp = 0
+    current_timestamp = int(time.time())
 
     while True:
         try:
@@ -117,7 +116,7 @@ def main():
             logging.error(message, exc_info=True)
             bot_client.send_message(
                 chat_id=CHAT_ID,
-                text = message
+                text=message
             )
             time.sleep(5)
 
