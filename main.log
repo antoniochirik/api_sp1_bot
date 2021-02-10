@@ -1,0 +1,10 @@
+2021-02-10 12:34:25,881, DEBUG, root, Бот активирован
+2021-02-10 12:34:26,120, DEBUG, root, Ответ от сервера Я.Практикум получен
+2021-02-10 12:34:26,123, INFO, root, Сообщение отправлено ботом в чат
+2021-02-10 12:34:26,123, DEBUG, telegram.bot, Entering: send_message
+2021-02-10 12:34:26,126, DEBUG, telegram.vendor.ptb_urllib3.urllib3.connectionpool, Starting new HTTPS connection (1): api.telegram.org
+2021-02-10 12:34:26,337, DEBUG, telegram.vendor.ptb_urllib3.urllib3.connectionpool, https://api.telegram.org:443 "POST /bot1641467128:AAGCTzOEVmTvFZikNkmsR4VUMkcgNA-2RFE/sendMessage HTTP/1.1" 200 585
+2021-02-10 12:34:26,341, DEBUG, telegram.bot, {'message_id': 36, 'date': 1612949666, 'chat': {'id': 882078391, 'type': 'private', 'username': 'tonikonj', 'first_name': 'Tony&co'}, 'text': 'У вас проверили работу "antoniochirik__api_sp1_bot.zip"!\n\nК сожалению в работе нашлись ошибки.', 'entities': [], 'caption_entities': [], 'photo': [], 'new_chat_members': [], 'new_chat_photo': [], 'delete_chat_photo': False, 'group_chat_created': False, 'supergroup_chat_created': False, 'channel_chat_created': False, 'from': {'id': 1641467128, 'first_name': 'Reviewer', 'is_bot': True, 'username': 'StudiTonyaBot'}}
+2021-02-10 12:34:26,343, DEBUG, telegram.bot, Exiting: send_message
+2021-02-10 12:39:26,616, DEBUG, root, Ответ от сервера Я.Практикум получен
+2021-02-10 12:44:26,936, DEBUG, root, Ответ от сервера Я.Практикум получен

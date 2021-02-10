@@ -18,50 +18,68 @@ logging.basicConfig(
 PRAKTIKUM_TOKEN = os.getenv('PRAKTIKUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-URL_PRAKTIKUM = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+URL_PRAKTIKUM = 'https://praktikum.yandex.ru/api/user_api/{method}/'
+CHECK_STR = 'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+HOMEWORK_STATUSES = {
+    'rejected': 'К сожалению в работе нашлись ошибки.',
+    'approved': ('Ревьюеру всё понравилось, '
+                 'можно приступать к следующему уроку.'),
+    'reviewing': 'Работа взята в проверку.',
+    'unknown': ('У работы {homework_name} неизвестный '
+                'статус: {status}')
+}
+REQUEST_EXEPTION = 'Проблемы с ответом от сервера. {ex}'
+DATE_ERROR = 'Ошибка в указании даты'
+JSON_ERROR = 'Проблемы с получением информации из json(). {er}'
+ERROR_MESSAGE = 'Бот столкнулся с ошибкой: {e}'
 
 
 def parse_homework_status(homework):
-    # Инициализирую бота внутри функции, т.к. pytest
-    # не дает в функцию передать больше одного параметра.
-    try:
-        homework_name = homework.get('homework_name')
-    except KeyError as er:
-        message = f'Проблемы с получением информации из json(). {er}'
-        logging.error(er, exc_info=True)
-        bot_client = bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
-        bot_client.send_message(CHAT_ID, message)
+    homework_name = homework.get('homework_name')
+    if homework_name == None:
+        message = JSON_ERROR.format(er=er)
+        raise Exception(message)
     status = homework['status']
+    if status == 'reviewing':
+        return HOMEWORK_STATUSES['reviewing']
+    verdict = None
     if status == 'rejected':
-        verdict = 'К сожалению в работе нашлись ошибки.'
-    else:  # status == 'appruved':
-        verdict = 'Ревьюеру всё понравилось, '\
-                  'можно приступать к следующему уроку.'
-    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        verdict = HOMEWORK_STATUSES['rejected']
+    elif status == 'approved':
+        verdict = HOMEWORK_STATUSES['approved']
+    else:
+        logging.error('Ошибка в определении статуса работы')
+        message = HOMEWORK_STATUSES['unknown'].format(
+            homework_name=homework_name,
+            status=status
+        )
+        raise Exception(message)
+    return CHECK_STR.format(
+        homework_name=homework_name, 
+        verdict=verdict
+    )
 
 
 def get_homework_statuses(current_timestamp):
-    # Инициализирую бота внутри функции, т.к. pytest
-    # не дает в функцию передать больше одного параметра.
     if current_timestamp is None:
-        raise ValueError('Ошибка в указании даты')
+        message = DATE_ERROR
+        raise ValueError(message)
     headers = {
         'Authorization': 'OAuth ' + PRAKTIKUM_TOKEN
     }
     params = {
         'from_date': current_timestamp
     }
+    method = 'homework_statuses'
     try:
         homework_statuses = requests.get(
-            URL_PRAKTIKUM,
+            URL_PRAKTIKUM.format(method=method),
             headers=headers,
             params=params
         )
     except requests.RequestException as ex:
-        message = f'Проблемы с ответом от сервера. {ex}'
-        logging.error(message, exc_info=True)
-        bot_client = bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
-        bot_client.send_message(CHAT_ID, message)
+        message = REQUEST_EXEPTION.format(ex=ex)
+        raise ex(message)
     logging.debug('Ответ от сервера Я.Практикум получен')
     return homework_statuses.json()
 
@@ -77,20 +95,30 @@ def send_message(message, bot_client):
 def main():
     bot_client = telegram.Bot(token=TELEGRAM_TOKEN)
     logging.debug('Бот активирован')
-    current_timestamp = int(time.time())  # начальное значение timestamp
+    #current_timestamp = int(time.time())
+    current_timestamp = 0
+
     while True:
         try:
             new_homework = get_homework_statuses(
-                current_timestamp, bot_client)
-            if new_homework.get('homeworks'):
+                current_timestamp)
+            get_new_homework = new_homework.get('homeworks')
+            if get_new_homework:
                 send_message(
-                    parse_homework_status(new_homework.get('homeworks')[0]))
+                    parse_homework_status(get_new_homework[0]),
+                    bot_client
+                )
             current_timestamp = new_homework.get(
-                'current_date', current_timestamp)  # обновить timestamp
-            time.sleep(300)  # опрашивать раз в пять минут
+                'current_date', current_timestamp)
+            time.sleep(300)
 
         except Exception as e:
-            print(f'Бот столкнулся с ошибкой: {e}')
+            message = ERROR_MESSAGE.format(e=e)
+            logging.error(message, exc_info=True)
+            bot_client.send_message(
+                chat_id=CHAT_ID,
+                text = message
+            )
             time.sleep(5)
 
 
